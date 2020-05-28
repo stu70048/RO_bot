@@ -1,9 +1,9 @@
 import asyncio
 import datetime
 import json
+import gspread
 from discord.ext import commands
 from datetime import timezone, timedelta
-
 from core.classes import Cog_Extension
 
 # item_num = {1: "傑勒比結晶", 2: "樹根", 3: "蝗蟲後腿", 4: "三葉幸運草", 5: "羽毛", 6: "鼠尾", 7: "毒牙", 8: "猴子尾巴", 9: "蝙蝠牙"}
@@ -25,22 +25,24 @@ def time_now():
 
 
 def eat_func():
-    with open('ChenKuang.json', 'r', encoding='utf8') as jfile:
-        jdata = json.load(jfile)
-    if jdata['update_time'] == time_now():
-        today_item = item_num[jdata['ChenKuangEatItem']]
-        tomorrow_item = item_num[(jdata['ChenKuangEatItem']) % len(item_num) + 1]
+    client = gspread.service_account("service_account.json")
+    spreadSheet = client.open("ChenKuang").sheet1
+    ChenKuangEatItem = int(spreadSheet.get('B2').first())
+    update_time = spreadSheet.get('B3').first()
+    if update_time == time_now():
+        today_item = item_num[ChenKuangEatItem]
+        tomorrow_item = item_num[(ChenKuangEatItem) % len(item_num) + 1]
         text = "晨光今天吃\"{}\"\n明天吃{}".format(today_item, tomorrow_item)
     else:
-        day = days(str(time_now()), jdata['update_time'])
-        today_item = item_num[(jdata['ChenKuangEatItem'] + day - 1) % len(item_num) + 1]
+        day = days(str(time_now()), update_time)
+        today_item = item_num[(ChenKuangEatItem + day - 1) % len(item_num) + 1]
         tomorrow_item = item_num[item_id[today_item] % len(item_num) + 1]
-
-        jdata['week'] = datetime.datetime.now().weekday() + 1
-        jdata['ChenKuangEatItem'] = item_id[today_item]
-        jdata['update_time'] = time_now()
-        with open('ChenKuang.json', 'w', encoding='utf8') as file:
-            json.dump(jdata, file, ensure_ascii=False, indent=4, default=str)
+        spreadSheet.batch_update([{
+            'range': 'A1:B3',
+            'values': [["week", datetime.datetime.now().weekday() + 1],
+                       ["ChenKuangEatItem", item_id[today_item]],
+                       ["update_time", time_now()]],
+        }])
         text = "晨光今天吃\"{}\"\n明天吃{}".format(today_item, tomorrow_item)
     if datetime.datetime.now().weekday() + 1 == 2:
         text += "\n今天可能維修，物品若有變動請用[!upgrade or !UPGRADE + 物品]進行更新"
@@ -49,14 +51,15 @@ def eat_func():
 
 def upgradeData(arg):
     if arg in item_id.keys():
-        with open('ChenKuang.json', 'r', encoding='utf8') as jfile:
-            jdata = json.load(jfile)
-        jdata['week'] = datetime.datetime.now().weekday() + 1
-        jdata['ChenKuangEatItem'] = item_id[arg]
-        jdata['update_time'] = time_now()
-        with open('ChenKuang.json', 'w', encoding='utf8') as jfile:
-            json.dump(jdata, jfile, ensure_ascii=False, indent=4, default=str)
-        text = f"物品為{item_num[jdata['ChenKuangEatItem']]}，更新資料成功!"
+        client = gspread.service_account("service_account.json")
+        spreadSheet = client.open("ChenKuang").sheet1
+        spreadSheet.batch_update([{
+            'range': 'A1:B3',
+            'values': [["week", datetime.datetime.now().weekday() + 1],
+                       ["ChenKuangEatItem", item_id[arg]],
+                       ["update_time", time_now()]],
+        }])
+        text = f"物品為{item_num[int(spreadSheet.get('B2').first())]}，更新資料成功!"
     else:
         text = "輸入物品錯誤，請在更新一次"
     return text
