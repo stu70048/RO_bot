@@ -1,6 +1,9 @@
 from discord.ext import commands
 from datetime import timezone, timedelta
 import datetime
+import asyncio
+import datetime
+import json
 from core.classes import Cog_Extension
 
 
@@ -36,36 +39,61 @@ class threeboss(Cog_Extension):
         tzutc_4 = timezone(timedelta(hours=8))
         local_time = datetime.datetime.utcnow().replace(tzinfo=timezone.utc).astimezone(tzutc_4)
         todayValue = (local_time.day + local_time.month) * 5
-        return todayValue
-    
+        return self.ten2b(todayValue)
+
     # -------- old code
     # @commands.command()
     # async def b(self, ctx, arg):
     #     text = self.ten2b(arg)
     #     await ctx.send(text)
-    # 
+    #
     # @commands.command()
     # async def B(self, ctx, arg):
     #     text = self.ten2b(arg)
     #     await ctx.send(text)
     @commands.command()
     async def q(self, ctx):
-        text = self.ten2b(self.todayValue())
+        text = self.todayValue()
         await ctx.send(text)
 
     @commands.command()
     async def Q(self, ctx):
-        text = self.ten2b(self.todayValue())
+        text = self.todayValue()
         await ctx.send(text)
 
     @commands.command()
     async def b(self, ctx):
-        text = self.ten2b(self.todayValue())
+        text = self.todayValue()
         await ctx.send(text)
 
     @commands.command()
     async def B(self, ctx):
-        text = self.ten2b(self.todayValue())
+        text = self.todayValue()
         await ctx.send(text)
+
+
+class threeboss_Task(Cog_Extension):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.bg_task = self.bot.loop.create_task(self.daily_task())
+
+    async def daily_task(self):
+        await self.bot.wait_until_ready()
+        self.channel = self.bot.get_channel(691950402937028629)
+        while not self.bot.is_closed():
+            now_time = datetime.datetime.utcnow().replace(tzinfo=timezone.utc).astimezone(
+                timezone(timedelta(hours=8))).strftime('%H%M')
+            with open('setting.json', 'r', encoding='utf8') as jfile:
+                jdata = json.load(jfile)
+            if now_time == jdata['time']:
+                await self.channel.send(threeboss.todayValue())
+                # self.counter = 1
+                await asyncio.sleep(60)
+            else:
+                await asyncio.sleep(1)
+                pass
+
+
 def setup(bot):
     bot.add_cog(threeboss(bot))
+    bot.add_cog(threeboss_Task(bot))
