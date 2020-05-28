@@ -43,7 +43,7 @@ def eat_func():
             json.dump(jdata, file, ensure_ascii=False, indent=4, default=str)
         text = "晨光今天吃\"{}\"\n明天吃{}".format(today_item, tomorrow_item)
     if datetime.datetime.now().weekday() + 1 == 2:
-        text += "\n今天可能維修，物品若有變動請用[!upgrade or !UPGRDE + 物品]進行更新"
+        text += "\n今天可能維修，物品若有變動請用[!upgrade or !UPGRADE + 物品]進行更新"
     return text
 
 
