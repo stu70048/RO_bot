@@ -2,14 +2,14 @@ from discord.ext import commands
 from datetime import timezone, timedelta
 import datetime
 import asyncio
-import datetime
 import json
 from core.classes import Cog_Extension
 
 
 class threeboss(Cog_Extension):
     def ten2b(self, arg):
-        value = str(bin(int(arg))).split("b")[-1]
+        todayValue = self.todayValue()
+        value = str(bin(int(todayValue))).split("b")[-1]
         length = len(value)
         if length % 4:
             value = value.zfill(length + 4 - length % 4)
@@ -21,8 +21,13 @@ class threeboss(Cog_Extension):
             text_list.insert(int(count * (-4)), " ")
             count -= 1
         value = "".join(text_list)
-        if len(value) < 10:
-            value = self.b2s(value)
+        if arg:
+            if len(value) < 10:
+                value = self.b2s(value)
+        # 跨日提醒
+        active, remindTime = self.CrossDayReminder()
+        if active:
+            value += f"\n只剩{remindTime}分鐘跨日，把握時間!"
         return value
 
     def b2s(self, arg):
@@ -39,36 +44,50 @@ class threeboss(Cog_Extension):
         tzutc_4 = timezone(timedelta(hours=8))
         local_time = datetime.datetime.utcnow().replace(tzinfo=timezone.utc).astimezone(tzutc_4)
         todayValue = (local_time.day + local_time.month) * 5
-        return self.ten2b(todayValue)
+        return todayValue
 
-    # -------- old code
-    # @commands.command()
-    # async def b(self, ctx, arg):
-    #     text = self.ten2b(arg)
-    #     await ctx.send(text)
-    #
-    # @commands.command()
-    # async def B(self, ctx, arg):
-    #     text = self.ten2b(arg)
-    #     await ctx.send(text)
-    @commands.command()
-    async def q(self, ctx):
-        text = self.todayValue()
-        await ctx.send(text)
-
-    @commands.command()
-    async def Q(self, ctx):
-        text = self.todayValue()
-        await ctx.send(text)
+    def CrossDayReminder(self):
+        tzutc_4 = timezone(timedelta(hours=8))
+        local_time = datetime.datetime.utcnow().replace(tzinfo=timezone.utc).astimezone(tzutc_4).strftime("%H:%M:%S")
+        onedaytime = datetime.datetime.strptime("23:59:59", "%H:%M:%S")
+        local_time = datetime.datetime.strptime(local_time[0:10], "%H:%M:%S")  # str變datetime格式
+        time = (onedaytime - local_time)
+        if time.seconds < 300:
+            remindTime = int(time.seconds / 60)
+            active = True
+        else:
+            remindTime = None
+            active = False
+        return active, remindTime
 
     @commands.command()
     async def b(self, ctx):
-        text = self.todayValue()
+        text = self.ten2b(True)
         await ctx.send(text)
 
     @commands.command()
     async def B(self, ctx):
-        text = self.todayValue()
+        text = self.ten2b(True)
+        await ctx.send(text)
+
+    @commands.command()
+    async def q(self, ctx):
+        text = self.ten2b(True)
+        await ctx.send(text)
+
+    @commands.command()
+    async def Q(self, ctx):
+        text = self.ten2b(True)
+        await ctx.send(text)
+
+    @commands.command()
+    async def W(self, ctx):
+        text = self.ten2b(False)
+        await ctx.send(text)
+
+    @commands.command()
+    async def w(self, ctx):
+        text = self.ten2b(False)
         await ctx.send(text)
 
 
@@ -86,14 +105,14 @@ class threeboss_Task(Cog_Extension):
             with open('setting.json', 'r', encoding='utf8') as jfile:
                 jdata = json.load(jfile)
             if now_time == jdata['time']:
-                await self.channel.send(threeboss.todayValue())
+                await self.channel.send(threeboss(Cog_Extension).ten2b(True))
                 # self.counter = 1
                 await asyncio.sleep(60)
             else:
-                await asyncio.sleep(1)
+                await asyncio.sleep(40)
                 pass
 
 
 def setup(bot):
     bot.add_cog(threeboss(bot))
-    bot.add_cog(threeboss_Task(bot))
+    # bot.add_cog(threeboss_Task(bot))

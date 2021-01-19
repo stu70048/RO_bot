@@ -29,10 +29,17 @@ def eat_func():
     spreadSheet = client.open("ChenKuang").sheet1
     ChenKuangEatItem = int(spreadSheet.get('B2').first())
     update_time = spreadSheet.get('B3').first()
+    #禮拜二維修日提醒
+    if datetime.datetime.now().weekday() + 1 == 2:
+        text = usage_counter()
+        text += "\n今天可能維修，物品若有變動請用[!update or !upgrade + 物品]進行更新"
+    else:
+        text = ""
+    #本函式主程式
     if update_time == time_now():
         today_item = item_num[ChenKuangEatItem]
-        tomorrow_item = item_num[(ChenKuangEatItem) % len(item_num) + 1]
-        text = "晨光今天吃\"{}\"\n明天吃{}".format(today_item, tomorrow_item)
+        tomorrow_item = item_num[ChenKuangEatItem % len(item_num) + 1]
+        text = "晨光今天吃\"{}\"\n明天吃{}".format(today_item, tomorrow_item) + text
     else:
         day = days(str(time_now()), update_time)
         today_item = item_num[(ChenKuangEatItem + day - 1) % len(item_num) + 1]
@@ -43,25 +50,49 @@ def eat_func():
                        ["ChenKuangEatItem", item_id[today_item]],
                        ["update_time", time_now()]],
         }])
-        text = "晨光今天吃\"{}\"\n明天吃{}".format(today_item, tomorrow_item)
-    if datetime.datetime.now().weekday() + 1 == 2:
-        text += "\n今天可能維修，物品若有變動請用[!upgrade or !UPGRADE + 物品]進行更新"
+        text = "晨光今天吃\"{}\"\n明天吃{}".format(today_item, tomorrow_item) + text
     return text
 
 
-def upgradeData(arg):
+def updateData(arg):
     if arg in item_id.keys():
         client = gspread.service_account("service_account.json")
         spreadSheet = client.open("ChenKuang").sheet1
+        # 顯示更新次數
+        if spreadSheet.get('B3').first() != time_now():
+            usage_count = 1
+        else:
+            usage_count = int(spreadSheet.get('B4').first()) + 1
+        #######
         spreadSheet.batch_update([{
-            'range': 'A1:B3',
+            'range': 'A1:B4',
             'values': [["week", datetime.datetime.now().weekday() + 1],
                        ["ChenKuangEatItem", item_id[arg]],
-                       ["update_time", time_now()]],
+                       ["update_time", time_now()],
+                       ["usage counter", usage_count]],
         }])
         text = f"物品為{item_num[int(spreadSheet.get('B2').first())]}，更新資料成功!"
     else:
         text = "輸入物品錯誤，請在更新一次"
+    return text
+
+
+def usage_counter():
+    client = gspread.service_account("service_account.json")
+    spreadSheet = client.open("ChenKuang").sheet1
+    update_time = spreadSheet.get('B3').first()
+    # 一樣要做跨日初始化
+    if update_time != time_now():
+        usage_count = 0
+        spreadSheet.batch_update([{
+            'range': 'A3:B4',
+            'values': [
+                ["update_time", time_now()],
+                ["usage counter", usage_count]],
+        }])
+    else:
+        usage_count = spreadSheet.get('B4').first()
+    text = f"\n晨光食物已更新次數為{usage_count}次!"
     return text
 
 
@@ -88,16 +119,46 @@ class ChenKuang(Cog_Extension):
 
     @commands.command()
     async def upgrade(self, ctx, arg):
-        text = upgradeData(arg)
+        text = updateData(arg)
         await ctx.send(text)
 
     @commands.command()
     async def UPGRADE(self, ctx, arg):
-        text = upgradeData(arg)
+        text = updateData(arg)
+        await ctx.send(text)
+
+    @commands.command()
+    async def update(self, ctx, arg):
+        text = updateData(arg)
+        await ctx.send(text)
+
+    @commands.command()
+    async def UPDATE(self, ctx, arg):
+        text = updateData(arg)
+        await ctx.send(text)
+
+    @commands.command()
+    async def updatec(self, ctx):
+        text = usage_counter()
+        await ctx.send(text)
+
+    @commands.command()
+    async def UPDATEC(self, ctx):
+        text = usage_counter()
+        await ctx.send(text)
+
+    @commands.command()
+    async def item(self, ctx):
+        text = "傑勒比結晶 → 樹根 → 蝗蟲後腿 → 三葉幸運草 → 羽毛 → 鼠尾 → 毒牙 → 猴子尾巴 → 蝙蝠牙 → 熊掌"
+        await ctx.send(text)
+
+    @commands.command()
+    async def ITEM(self, ctx):
+        text = "傑勒比結晶 → 樹根 → 蝗蟲後腿 → 三葉幸運草 → 羽毛 → 鼠尾 → 毒牙 → 猴子尾巴 → 蝙蝠牙 → 熊掌"
         await ctx.send(text)
 
 
-class Task(Cog_Extension):
+class ChenKuang_Task(Cog_Extension):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.bg_task = self.bot.loop.create_task(self.daily_task())
@@ -116,7 +177,7 @@ class Task(Cog_Extension):
                 # self.counter = 1
                 await asyncio.sleep(60)
             else:
-                await asyncio.sleep(1)
+                await asyncio.sleep(40)
                 pass
 
     @commands.command()
@@ -134,5 +195,5 @@ class Task(Cog_Extension):
 
 
 def setup(bot):
-    bot.add_cog(Task(bot))
     bot.add_cog(ChenKuang(bot))
+    # bot.add_cog(ChenKuang_Task(bot))

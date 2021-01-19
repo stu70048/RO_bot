@@ -1,0 +1,4 @@
+discord.py>=1.3.4
+gspread
+Flask
+setuptools>=40.3.0
