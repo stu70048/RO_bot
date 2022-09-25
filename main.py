@@ -3,7 +3,7 @@ from discord.ext import commands
 from core.classes import Cog_Extension
 import json
 import random, os, asyncio
-import keep_alive
+#import keep_alive
 with open('setting.json', 'r', encoding='utf8') as jfile:
 	jdata = json.load(jfile)
 
@@ -18,6 +18,6 @@ for filename in os.listdir('./cmds'):
 		bot.load_extension(f'cmds.{filename[:-3]}')
 
 if __name__ == "__main__":
-  keep_alive.keep_alive()
+  #keep_alive.keep_alive()
   bot.run(jdata['TOKEN'])
 	
