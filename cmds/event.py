@@ -23,6 +23,5 @@ class Event(Cog_Extension):
         else:
             pass
 
-
-def setup(bot):
-    bot.add_cog(Event(bot))
+async def setup(bot):
+    await bot.add_cog(Event(bot))

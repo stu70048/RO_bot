@@ -81,5 +81,5 @@ class cmdsInfo(Cog_Extension):
         text = self.diceinfo_fun()
         await ctx.send(text)
 
-def setup(bot):
-    bot.add_cog(cmdsInfo(bot))
+async def setup(bot):
+    await bot.add_cog(cmdsInfo(bot))

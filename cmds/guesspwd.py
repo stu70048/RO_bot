@@ -175,6 +175,5 @@ class guesspwd(Cog_Extension):
         reset()
         await ctx.send('已重製數據')
 
-
-def setup(bot):
-    bot.add_cog(guesspwd(bot))
+async def setup(bot):
+    await bot.add_cog(guesspwd(bot))

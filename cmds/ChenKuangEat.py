@@ -193,7 +193,5 @@ class ChenKuang_Task(Cog_Extension):
         with open('setting.json', 'w', encoding='utf8') as jfile:
             json.dump(jdata, jfile, indent=4)
 
-
-def setup(bot):
-    bot.add_cog(ChenKuang(bot))
-    # bot.add_cog(ChenKuang_Task(bot))
+async def setup(bot):
+    await bot.add_cog(ChenKuang(bot))

@@ -112,6 +112,5 @@ class draw(Cog_Extension):
         await ctx.send(text)
         await ctx.send(text2)
 
-
-def setup(bot):
-    bot.add_cog(draw(bot))
+async def setup(bot):
+    await bot.add_cog(draw(bot))

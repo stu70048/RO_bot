@@ -270,7 +270,5 @@ class forest(Cog_Extension):
             text = self.pathF3toF2(arg, 26) + "\n若再2、17、19、24圖上，移動一張地圖再計算一次"
         await ctx.send(text)
 
-
-############################################
-def setup(bot):
-    bot.add_cog(forest(bot))
+async def setup(bot):
+    await bot.add_cog(forest(bot))

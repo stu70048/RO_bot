@@ -112,7 +112,5 @@ class threeboss_Task(Cog_Extension):
                 await asyncio.sleep(40)
                 pass
 
-
-def setup(bot):
-    bot.add_cog(threeboss(bot))
-    # bot.add_cog(threeboss_Task(bot))
+async def setup(bot):
+    await bot.add_cog(threeboss(bot))

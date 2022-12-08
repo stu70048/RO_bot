@@ -73,5 +73,7 @@ class dice(Cog_Extension):
         text = "點數大小排序：1>6>5>4>3>2"
         text += "\n骰型大小排序：豹子>順子>4個>3帶2>3個>2對>1個>散骰"
         await ctx.send('{}'.format(text))
-def setup(bot):
-    bot.add_cog(dice(bot))
+
+async def setup(bot):
+    await bot.add_cog(dice(bot))
+    
