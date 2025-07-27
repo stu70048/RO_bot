@@ -29,6 +29,5 @@ class Main(Cog_Extension):
 		'''有效人員 指令權限測試'''
 		await ctx.send('Bee! Bo!')
 
-
-def setup(bot):
-	bot.add_cog(Main(bot))
+async def setup(bot):
+	await bot.add_cog(Main(bot))
